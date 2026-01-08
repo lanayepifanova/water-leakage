@@ -1,0 +1,22 @@
+multispectral - using many different types of data sources
+
+WADI (water distribution system anomaly detection) = research benchmark
+
+## satellite signals we can use ##
+
+sentinel-2 data
+- how the earth's surface reflects sunlight in multiple wavelengths across 13 different spectral bands (visible light + invisible light)
+- it measures reflected light intensity which reveals physical and biological properties of the surface
+- visible light: blue, green, and red bands
+- near infrared (NIR) + red edge: great at detecting vegetation health, leaf area, chlorophyll content, biomass, plant stress, crop vigor
+- short wave infrared (SWIR): moisture content in soil and vegetation
+- can derive: vegetation health, water bodies, water quality, soil moisture, land cover classification
+
+sentinel-1 data
+- synthetic aperature radar (SAR) satellite consetellation
+- actively emits radar pulses and measure how they bounce back from Earth's surface
+- surface roughness & texture, ground motion & deformation called Interferometric SAR, oil spills, sea icea extent and motion, ship detection
+- level 0 = raw radar data
+- level 1 SLC = complex images with amplitude and phase
+- level 1 GRD = radar intensity images projected to ground
+- level 2 = higher level geophysical products
