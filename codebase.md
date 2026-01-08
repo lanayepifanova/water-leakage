@@ -21,7 +21,7 @@ Anomaly features are computed from those CSVs
 - **notebooks/03_anomaly_detection.ipynb**: loads exported CSVs, builds same‑month baselines, computes z‑score anomalies, aggregates per break, and saves a parquet.
 - “anomaly features” are numeric summaries that describe how unusual the vegetation/water indices are near each break compared to that location’s normal seasonal behavior.
 
-**Logic and reasoning behind Anomaly features: **
+**Logic and reasoning behind Anomaly features:**
   - Seasonal baseline: for each break location, build a baseline for the same month from
     prior years (to control for seasonality).
   - Anomaly score: for each index (NDVI/NDWI/NDRE/RENDVI), compute a z‑score = (current
