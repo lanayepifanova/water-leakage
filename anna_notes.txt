@@ -1,1 +1,18 @@
-hello
+Data that can be used 
+1. Sentinel-2 data 
+L1C = 生データ（見た目重視）
+L2A = 補正済みデータ（分析・研究・水質向き）
+  measures reflected light intensity from sunlight 
+    vegetation health 
+    quality of water bodies (sediment, algal blooms)-> would be cool if we could measure lead levels through satellite tech 
+    soil moisture 
+    land cover classification 
+2. Sentinel-1 data
+  actively emits radar pulses and measures how they bounce back from earth's surface 
+    oil spills 
+    ship detection 
+    earthquakes 
+    volcano
+
+
+location of interest: kitchener, ontario
