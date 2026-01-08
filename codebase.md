@@ -20,7 +20,9 @@ Anomaly features are computed from those CSVs
 - **data/features/anomaly_features.parquet**.
 - **notebooks/03_anomaly_detection.ipynb**: loads exported CSVs, builds same‑month baselines, computes z‑score anomalies, aggregates per break, and saves a parquet.
 
-  - notebooks/01_explore_labels.ipynb and notebooks/04_model_training.ipynb are empty
-    placeholders.
+
+
+empty: 
+notebooks/01_explore_labels.ipynb and notebooks/04_model_training.ipynb are empty placeholders.
 
  
