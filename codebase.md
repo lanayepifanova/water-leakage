@@ -19,8 +19,20 @@ Google Earth Engine pulls Sentinel‑2 imagery, produces time series around each
 Anomaly features are computed from those CSVs
 - **data/features/anomaly_features.parquet**.
 - **notebooks/03_anomaly_detection.ipynb**: loads exported CSVs, builds same‑month baselines, computes z‑score anomalies, aggregates per break, and saves a parquet.
+- “anomaly features” are numeric summaries that describe how unusual the vegetation/water indices are near each break compared to that location’s normal seasonal behavior.
 
-
+**Logic and reasoning behind Anomaly features: **
+  - Seasonal baseline: for each break location, build a baseline for the same month from
+    prior years (to control for seasonality).
+  - Anomaly score: for each index (NDVI/NDWI/NDRE/RENDVI), compute a z‑score = (current
+    value − baseline mean) / baseline std.
+  - Windowed focus: only the 6 months before to 2 months after each break are scored as
+    “window” observations.
+  - Aggregation per break: summarize the anomalies over the window into features like max/
+    mean z‑score, threshold exceedances, and persistence (e.g., consecutive months above a
+    threshold).
+  - So the features are designed to capture “unusually wet/vegetated/stressed” signals near
+  the corridor relative to normal seasonal patterns, which can be a proxy for leak effects.
 
 empty: 
 notebooks/01_explore_labels.ipynb and notebooks/04_model_training.ipynb are empty placeholders.
