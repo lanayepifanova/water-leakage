@@ -8,7 +8,7 @@ https://open-kitchenergis.opendata.arcgis.com/datasets/KitchenerGIS%3A%3Awater-m
 Published work using the Kitchener GeoHub 
 https://www.mdpi.com/2673-4591/69/1/13?utm_source=chatgpt.com
 
-# static dataset viewers
+# static dataset viewer
 
 Created a static viewer at outputs/kitchener_labels_viewer.html. It loads the cleaned GeoJSON, shows a searchable/paginated table, and can download a CSV.
 
