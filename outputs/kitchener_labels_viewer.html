@@ -1,0 +1,324 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Kitchener Water Main Breaks - Table Viewer</title>
+  <style>
+    :root {
+      --bg: #f6f2e9;
+      --ink: #1f1c18;
+      --muted: #6f6257;
+      --accent: #3b7d6a;
+      --panel: #ffffff;
+      --border: #e3d8c7;
+      --shadow: 0 10px 30px rgba(40, 30, 20, 0.08);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Space Grotesk", "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+      background: radial-gradient(1200px 800px at 10% 10%, #efe7d8, #f6f2e9);
+      color: var(--ink);
+    }
+    header {
+      padding: 32px 24px 8px;
+    }
+    h1 {
+      margin: 0 0 6px;
+      font-size: 28px;
+      letter-spacing: 0.2px;
+    }
+    p {
+      margin: 0;
+      color: var(--muted);
+    }
+    main {
+      padding: 16px 24px 40px;
+    }
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: var(--shadow);
+    }
+    .controls {
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .controls input {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-size: 14px;
+    }
+    .controls button {
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      background: var(--accent);
+      color: white;
+      border-radius: 10px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .controls button.secondary {
+      background: transparent;
+      color: var(--ink);
+    }
+    .meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 8px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+    thead th {
+      text-align: left;
+      padding: 10px 8px;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      background: var(--panel);
+    }
+    tbody td {
+      padding: 8px;
+      border-bottom: 1px solid #efe6d8;
+    }
+    tbody tr:hover {
+      background: #f4efe6;
+    }
+    .pager {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      justify-content: flex-end;
+      margin-top: 12px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .pager button {
+      padding: 6px 10px;
+      border: 1px solid var(--border);
+      background: white;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .status {
+      font-size: 13px;
+      color: var(--muted);
+      padding: 8px 0;
+    }
+    @media (max-width: 800px) {
+      .controls {
+        grid-template-columns: 1fr;
+      }
+      thead {
+        display: none;
+      }
+      table, tbody, tr, td {
+        display: block;
+        width: 100%;
+      }
+      tbody tr {
+        margin-bottom: 12px;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 8px;
+        background: white;
+      }
+      tbody td {
+        border: none;
+        padding: 6px 4px;
+      }
+      tbody td::before {
+        content: attr(data-label);
+        font-weight: 600;
+        display: inline-block;
+        width: 120px;
+        color: var(--muted);
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Kitchener Water Main Breaks</h1>
+    <p>Static client-side table viewer for the cleaned labels dataset.</p>
+  </header>
+  <main>
+    <div class="panel">
+      <div class="controls">
+        <input id="search" type="search" placeholder="Search id, date, lat, lon" />
+        <button id="refresh">Reload</button>
+        <button id="download" class="secondary">Download CSV</button>
+      </div>
+      <div class="meta">
+        <div id="counts">Loading...</div>
+        <div>
+          Page size
+          <select id="pageSize">
+            <option>25</option>
+            <option>50</option>
+            <option>100</option>
+            <option>250</option>
+          </select>
+        </div>
+      </div>
+      <div class="status" id="status"></div>
+      <div style="max-height: 60vh; overflow: auto; border: 1px solid var(--border); border-radius: 12px;">
+        <table>
+          <thead>
+            <tr>
+              <th>id</th>
+              <th>lat</th>
+              <th>lon</th>
+              <th>break_date</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+      </div>
+      <div class="pager">
+        <button id="prev">Prev</button>
+        <span id="pageInfo"></span>
+        <button id="next">Next</button>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const dataUrl = '../data/labels/kitchener_water_main_breaks.geojson';
+    let rows = [];
+    let filtered = [];
+    let page = 1;
+    let pageSize = 25;
+
+    const tableBody = document.getElementById('tableBody');
+    const counts = document.getElementById('counts');
+    const status = document.getElementById('status');
+    const pageInfo = document.getElementById('pageInfo');
+    const search = document.getElementById('search');
+    const pageSizeSelect = document.getElementById('pageSize');
+
+    function formatRow(row) {
+      return {
+        id: row.id ?? '',
+        lat: row.lat ?? '',
+        lon: row.lon ?? '',
+        break_date: row.break_date ?? '',
+      };
+    }
+
+    function renderTable() {
+      const start = (page - 1) * pageSize;
+      const end = start + pageSize;
+      const view = filtered.slice(start, end);
+
+      tableBody.innerHTML = '';
+      for (const row of view) {
+        const tr = document.createElement('tr');
+        const cells = ['id', 'lat', 'lon', 'break_date'];
+        for (const key of cells) {
+          const td = document.createElement('td');
+          td.textContent = row[key];
+          td.setAttribute('data-label', key);
+          tr.appendChild(td);
+        }
+        tableBody.appendChild(tr);
+      }
+
+      const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+      pageInfo.textContent = `Page ${page} of ${totalPages}`;
+      counts.textContent = `${filtered.length} rows`;
+    }
+
+    function applyFilter() {
+      const q = search.value.trim().toLowerCase();
+      if (!q) {
+        filtered = rows.slice();
+      } else {
+        filtered = rows.filter((row) => {
+          return (
+            String(row.id).toLowerCase().includes(q) ||
+            String(row.lat).toLowerCase().includes(q) ||
+            String(row.lon).toLowerCase().includes(q) ||
+            String(row.break_date).toLowerCase().includes(q)
+          );
+        });
+      }
+      page = 1;
+      renderTable();
+    }
+
+    function setStatus(msg) {
+      status.textContent = msg;
+    }
+
+    async function loadData() {
+      setStatus('Loading dataset...');
+      try {
+        const res = await fetch(dataUrl);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        rows = data.features.map((f) => formatRow(f.properties || {}));
+        filtered = rows.slice();
+        page = 1;
+        setStatus('');
+        renderTable();
+      } catch (err) {
+        setStatus('Failed to load dataset. Run a local server and reload.');
+      }
+    }
+
+    function toCsv(list) {
+      const headers = ['id', 'lat', 'lon', 'break_date'];
+      const lines = [headers.join(',')];
+      for (const row of list) {
+        lines.push(headers.map((h) => String(row[h] ?? '')).join(','));
+      }
+      return lines.join('\n');
+    }
+
+    document.getElementById('refresh').addEventListener('click', loadData);
+    document.getElementById('download').addEventListener('click', () => {
+      const csv = toCsv(filtered);
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'kitchener_water_main_breaks.csv';
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+    document.getElementById('prev').addEventListener('click', () => {
+      if (page > 1) page -= 1;
+      renderTable();
+    });
+    document.getElementById('next').addEventListener('click', () => {
+      const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+      if (page < totalPages) page += 1;
+      renderTable();
+    });
+    search.addEventListener('input', applyFilter);
+    pageSizeSelect.addEventListener('change', (e) => {
+      pageSize = Number(e.target.value);
+      page = 1;
+      renderTable();
+    });
+
+    loadData();
+  </script>
+</body>
+</html>
